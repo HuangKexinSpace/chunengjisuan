@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电力方案计算</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>电力方案计算</h1>
+        <form method="POST">
+            <div class="form-group">
+                <div class="column">
+                    <label for="C1">固定成本:</label>
+                    <input type="number" id="C1" name="C1" step="any" placeholder="436500000">
+                </div>
+                <div class="column">
+                    <label for="C2">每年投资成本:</label>
+                    <input type="number" id="C2" name="C2" step="any" placeholder="2200000">
+                </div>
+                <div class="column">
+                    <label for="lowfee">低时段费用lowfee:</label>
+                    <input type="number" id="lowfee" name="lowfee" step="any" placeholder="0.323">
+                </div>
+                <div class="column">
+                    <label for="midfee">普通时段费用midfee:</label>
+                    <input type="number" id="midfee" name="midfee" step="any" placeholder="0.807">
+                </div>
+                <div class="column">
+                    <label for="highfee">高时段费用highfee:</label>
+                    <input type="number" id="highfee" name="highfee" step="any" placeholder="1.353">
+                </div>
+                <div class="column">
+                    <label for="days">工作天数days:</label>
+                    <input type="number" id="days" name="days" placeholder="330">
+                </div>
+                <div class="column">
+                    <label for="efficiency">效率efficiency:</label>
+                    <input type="number" id="efficiency" name="efficiency" step="any" placeholder="0.86">
+                </div>
+                <div class="column">
+                    <label for="discount_rate">折现率:</label>
+                    <input type="number" id="discount_rate" name="discount_rate" step="any" placeholder="0.04">
+                </div>
+                <div class="column">
+                    <label for="rawcapacity1">两充两放 - 初始容量:</label>
+                    <input type="number" id="rawcapacity1" name="rawcapacity1" placeholder="200000">
+                </div>
+                <div class="column">
+                    <label for="perreduction1">两充两放每年衰减容量:</label>
+                    <input type="number" id="perreduction1" name="perreduction1" placeholder="2800">
+                </div>
+                <div class="column">
+                    <label for="rawcapacity2">一充一放 - 初始容量:</label>
+                    <input type="number" id="rawcapacity2" name="rawcapacity2" placeholder="200000">
+                </div>
+                <div class="column">
+                    <label for="perreduction2">一充一放每年衰减容量::</label>
+                    <input type="number" id="perreduction2" name="perreduction2" placeholder="1800">
+                </div>
+            </div>
+            <button type="submit">计算</button>
+        </form>
+        {% if netprofits1 and netprofits2 %}
+        <h2>方案1: 两充两放</h2>
+        <ul>
+            {% for i in range(10) %}
+            <li>截至第{{ i+1 }}年净利润为：{{ netprofits1[i] }}</li>
+            {% endfor %}
+        </ul>
+        <h2>方案2: 一充一放</h2>
+        <ul>
+            {% for i in range(10) %}
+            <li>截至第{{ i+1 }}年净利润为：{{ netprofits2[i] }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</body>
+</html>
