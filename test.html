@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>电力方案计算</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				font-size: 18px;
+				line-height: 1.6;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				background-color: #f4f4f4;
+			}
+
+			.container {
+				background: #fff;
+				padding: 20px;
+				border-radius: 10px;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+				width: 90%;
+				max-width: 800px;
+			}
+
+			h1 {
+				text-align: center;
+				margin-bottom: 20px;
+			}
+
+			.form-group {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: space-between;
+			}
+
+			.column {
+				flex: 1 1 45%;
+				margin-bottom: 15px;
+			}
+
+			label {
+				display: block;
+				margin-bottom: 5px;
+			}
+
+			input {
+				width: 100%;
+				padding: 10px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+			}
+
+			button {
+				display: block;
+				width: 100%;
+				padding: 10px;
+				background-color: #007bff;
+				color: #fff;
+				border: none;
+				border-radius: 5px;
+				font-size: 18px;
+				cursor: pointer;
+				margin-top: 20px;
+			}
+
+			button:hover {
+				background-color: #0056b3;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>电力方案计算</h1>
+			<div class="form-group">
+				<div class="column">
+					<label for="C1">固定成本:</label>
+					<input type="number" id="C1" step="any" placeholder="436500000" />
+				</div>
+				<div class="column">
+					<label for="C2">每年投资成本:</label>
+					<input type="number" id="C2" step="any" placeholder="2200000" />
+				</div>
+				<div class="column">
+					<label for="lowfee">低时段费用lowfee:</label>
+					<input type="number" id="lowfee" step="any" placeholder="0.323" />
+				</div>
+				<div class="column">
+					<label for="midfee">普通时段费用midfee:</label>
+					<input type="number" id="midfee" step="any" placeholder="0.807" />
+				</div>
+				<div class="column">
+					<label for="highfee">高时段费用highfee:</label>
+					<input type="number" id="highfee" step="any" placeholder="1.353" />
+				</div>
+				<div class="column">
+					<label for="days">工作天数days:</label>
+					<input type="number" id="days" placeholder="330" />
+				</div>
+				<div class="column">
+					<label for="efficiency">效率efficiency:</label>
+					<input type="number" id="efficiency" step="any" placeholder="0.86" />
+				</div>
+				<div class="column">
+					<label for="discount_rate">折现率:</label>
+					<input
+						type="number"
+						id="discount_rate"
+						step="any"
+						placeholder="0.04"
+					/>
+				</div>
+				<div class="column">
+					<label for="rawcapacity1">两充两放 - 初始容量:</label>
+					<input type="number" id="rawcapacity1" placeholder="200000" />
+				</div>
+				<div class="column">
+					<label for="perreduction1">两充两放每年衰减容量:</label>
+					<input type="number" id="perreduction1" placeholder="2800" />
+				</div>
+				<div class="column">
+					<label for="rawcapacity2">一充一放 - 初始容量:</label>
+					<input type="number" id="rawcapacity2" placeholder="200000" />
+				</div>
+				<div class="column">
+					<label for="perreduction2">一充一放每年衰减容量:</label>
+					<input type="number" id="perreduction2" placeholder="1800" />
+				</div>
+			</div>
+			<button onclick="calculate()">计算</button>
+			<div id="results"></div>
+		</div>
+
+		<script>
+			function getFloat(id, defaultValue) {
+				const value = document.getElementById(id).value;
+				return value === "" ? defaultValue : parseFloat(value);
+			}
+
+			function getInt(id, defaultValue) {
+				const value = document.getElementById(id).value;
+				return value === "" ? defaultValue : parseInt(value);
+			}
+
+			function calculate() {
+				const C1 = getFloat("C1", 436500000);
+				const C2 = getFloat("C2", 2200000);
+				const lowfee = getFloat("lowfee", 0.323);
+				const midfee = getFloat("midfee", 0.807);
+				const highfee = getFloat("highfee", 1.353);
+				const days = getInt("days", 330);
+				const efficiency = getFloat("efficiency", 0.86);
+				const discount_rate = getFloat("discount_rate", 0.04);
+
+				const rawcapacity1 = getInt("rawcapacity1", 200000);
+				const perreduction1 = getInt("perreduction1", 2800);
+				const capacities1 = Array.from(
+					{ length: 10 },
+					(_, i) => rawcapacity1 - perreduction1 * i
+				);
+
+				const percost1 = lowfee * days + midfee * days;
+				const perprofit1 = highfee * days * 2 * efficiency;
+				const perown1 = perprofit1 - percost1;
+
+				let year1_cost1 = C1 + C2;
+				let year1_profit1 = perown1 * capacities1[0];
+				let year1_netprofit1 = year1_profit1 - year1_cost1;
+
+				let costs1 = [year1_cost1];
+				let profits1 = [year1_profit1];
+				let netprofits1 = [year1_netprofit1];
+
+				for (let i = 1; i < 10; i++) {
+					let year_cost = costs1[i - 1] + C2;
+					let year_profit =
+						profits1[i - 1] +
+						(perown1 * capacities1[i]) / Math.pow(1 + discount_rate, i);
+					let year_netprofit = year_profit - year_cost;
+					costs1.push(year_cost);
+					profits1.push(year_profit);
+					netprofits1.push(year_netprofit);
+				}
+
+				const rawcapacity2 = getInt("rawcapacity2", 200000);
+				const perreduction2 = getInt("perreduction2", 1800);
+				const capacities2 = Array.from(
+					{ length: 10 },
+					(_, i) => rawcapacity2 - perreduction2 * i
+				);
+
+				const percost2 = lowfee * days;
+				const perprofit2 = highfee * days * efficiency;
+				const perown2 = perprofit2 - percost2;
+
+				let year1_cost2 = C1 + C2;
+				let year1_profit2 = perown2 * capacities2[0];
+				let year1_netprofit2 = year1_profit2 - year1_cost2;
+
+				let costs2 = [year1_cost2];
+				let profits2 = [year1_profit2];
+				let netprofits2 = [year1_netprofit2];
+
+				for (let i = 1; i < 10; i++) {
+					let year_cost = costs2[i - 1] + C2;
+					let year_profit =
+						profits2[i - 1] +
+						(perown2 * capacities2[i]) / Math.pow(1 + discount_rate, i);
+					let year_netprofit = year_profit - year_cost;
+					costs2.push(year_cost);
+					profits2.push(year_profit);
+					netprofits2.push(year_netprofit);
+				}
+
+				displayResults(netprofits1, netprofits2);
+			}
+
+			function displayResults(netprofits1, netprofits2) {
+				const resultsDiv = document.getElementById("results");
+				resultsDiv.innerHTML = `
+                <h2>方案1: 两充两放</h2>
+                <ul>
+                    ${netprofits1
+											.map(
+												(profit, i) =>
+													`<li>截至第${i + 1}年净利润为：${profit.toFixed(
+														2
+													)}</li>`
+											)
+											.join("")}
+                </ul>
+                <h2>方案2: 一充一放</h2>
+                <ul>
+                    ${netprofits2
+											.map(
+												(profit, i) =>
+													`<li>截至第${i + 1}年净利润为：${profit.toFixed(
+														2
+													)}</li>`
+											)
+											.join("")}
+                </ul>
+            `;
+			}
+		</script>
+	</body>
+</html>
